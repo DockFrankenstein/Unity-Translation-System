@@ -27,6 +27,11 @@ namespace Translations.Editor
                 new Color(0.2078432f, 0.2078432f, 0.2078432f) :
                 new Color(0.7137255f, 0.7137255f, 0.7137255f);
         public static Texture2D DarkBackgroundTexture => GenerateColorTexture(DarkBackgroundColor);
+        public static Color SelectedColor => EditorGUIUtility.isProSkin ?
+            new Color(44f / 255f, 93f / 255f, 135f / 255f) :
+            new Color(58f / 255f, 114f / 255f, 176f / 255f);
+        public static Texture2D SelectedColorTexture => GenerateColorTexture(SelectedColor);
+
 
         public static Texture2D GenerateColorTexture(Color color)
         {

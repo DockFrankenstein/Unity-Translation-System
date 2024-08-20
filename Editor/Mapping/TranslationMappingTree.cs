@@ -130,7 +130,7 @@ namespace Translations.Editor.Mapping
             switch (args.item)
             {
                 case GroupItem group:
-                    ToolGuiUtility.DrawColor(args.rowRect, ToolGuiUtility.ButtonColor);
+                    ToolGuiUtility.DrawColor(args.rowRect, args.selected ? ToolGuiUtility.SelectedColor : ToolGuiUtility.ButtonColor);
                     EditorGUI.LabelField(textRect, args.label, EditorStyles.boldLabel);
                     break;
                 case ItemItem item:
