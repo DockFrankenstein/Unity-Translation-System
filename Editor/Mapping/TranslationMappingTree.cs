@@ -125,11 +125,23 @@ namespace Translations.Editor.Mapping
                 .BorderLeft(GetContentIndent(args.item))
                 .ResizeHeightToCenter(EditorGUIUtility.singleLineHeight);
 
-            var outlineRect = args.rowRect.ResizeToBottom(0f);
+            var separatorRect = args.rowRect.ResizeToBottom(1f);
 
-            EditorGUI.LabelField(textRect, args.label);
-            ToolGuiUtility.HorizontalLine(outlineRect);
+            switch (args.item)
+            {
+                case GroupItem group:
+                    ToolGuiUtility.DrawColor(args.rowRect, ToolGuiUtility.ButtonColor);
+                    EditorGUI.LabelField(textRect, args.label, EditorStyles.boldLabel);
+                    break;
+                case ItemItem item:
+                    EditorGUI.LabelField(textRect, args.label);
+                    break;
+                case DynamicValueItem val:
+                    EditorGUI.LabelField(textRect, $"[{args.label}]");
+                    break;
+            }
 
+            ToolGuiUtility.HorizontalLine(separatorRect);
             customFoldoutYOffset = (args.rowRect.height - 16f) / 2f;
         }
         #endregion
