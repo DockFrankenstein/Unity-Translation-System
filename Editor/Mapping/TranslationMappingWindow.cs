@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using Translations.Mapping;
+using UnityEditor.Callbacks;
 
 namespace Translations.Editor.Mapping
 {
@@ -17,6 +18,17 @@ namespace Translations.Editor.Mapping
         public TranslationMappingTree tree;
         public TreeViewState treeState;
 
+        [OnOpenAsset]
+        public static bool OnOpenAsset(int instanceID, int line)
+        {
+            object obj = EditorUtility.InstanceIDToObject(instanceID);
+            if (!(obj is TranslationMapping asset))
+                return false;
+
+            OpenAsset(asset);
+            return true;
+        }
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -27,8 +39,27 @@ namespace Translations.Editor.Mapping
 
             tree = new TranslationMappingTree(treeState, asset);
             tree.OnAssetModified += SetAssetDirty;
+            tree.CreateContextMenu += item =>
+            {
+                var menu = new GenericMenu();
 
-            tree.Reload();
+                if (item is TranslationMappingTree.GroupItem group)
+                {
+                    menu.AddItem("Add Item", false, () => CreateNewItem(group.group));
+                    menu.AddSeparator("");
+                }
+
+                if (item is TranslationMappingTree.ItemItem itemItem)
+                {
+                    menu.AddItem("Add Dynamic Value", false, () => CreateNewDynamicValue(itemItem.item));
+                    menu.AddSeparator("");
+                }
+
+                menu.AddItem("Rename", false, () => tree.BeginRenameObject(item.Object));
+                menu.AddItem("Delete", false, () => tree.Delete(item.Object));
+
+                return menu;
+            };
         }
 
         protected override void OnGUI()
@@ -39,16 +70,10 @@ namespace Translations.Editor.Mapping
             DrawTreeView(tree);
         }
 
-        public override void Save()
+        public override void SetAssetDirty()
         {
-            var json = JsonUtility.ToJson(asset, true);
-
-            var relativePath = AssetDatabase.GetAssetPath(asset);
-            var path = $"{Application.dataPath}/{relativePath.Remove(0, 7)}";
-            File.WriteAllText(path, json);
-            AssetDatabase.ImportAsset(relativePath);
-
-            base.Save();
+            base.SetAssetDirty();
+            tree.Reload();
         }
 
         public void CreateNewGroup()
@@ -57,26 +82,31 @@ namespace Translations.Editor.Mapping
 
             asset.groups.Add(group);
             tree.Reload();
+            tree.BeginRenameObject(group);
             SetAssetDirty();
         }
 
         public void CreateNewItem()
         {
-            var item = new TranslationMappingItem("New Item");
-
             if (asset.groups.Count == 0)
                 CreateNewGroup();
 
             var group = tree.GetSelectedGroup() ?? asset.groups.First();
+            CreateNewItem(group);
+        }
+
+        public void CreateNewItem(TranslationMappingGroup group)
+        {
+            var item = new TranslationMappingItem("New Item");
+
             group.items.Add(item);
             tree.Reload();
+            tree.BeginRenameObject(item);
             SetAssetDirty();
         }
 
         public void CreateNewDynamicValue()
         {
-            var val = new TranslationMappingDynamicValue("New Dynamic Value");
-
             if (asset.groups.Count == 0)
                 CreateNewGroup();
 
@@ -86,8 +116,15 @@ namespace Translations.Editor.Mapping
                 CreateNewItem();
 
             var item = tree.GetSelectedItem() ?? group.items.First();
+            CreateNewDynamicValue(item);
+        }
+
+        public void CreateNewDynamicValue(TranslationMappingItem item)
+        {
+            var val = new TranslationMappingDynamicValue("New Dynamic Value");
             item.dynamicValues.Add(val);
             tree.Reload();
+            tree.BeginRenameObject(val);
             SetAssetDirty();
         }
     }

@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using System.IO;
 
 namespace Translations.Editor
 {
@@ -50,12 +51,12 @@ namespace Translations.Editor
 
             var window = CreateWindow();
             window.asset = asset;
-            window.UpdateWindowTitle();
+            window.UpdateWindowTitle(); 
         }
 
         public void UpdateWindowTitle()
         {
-            titleContent = new GUIContent($"{(_isDirty == true ? "*" : "")}{(asset ? asset.name : WindowTitle)}", icon);
+            titleContent = new GUIContent(asset ? asset.name : WindowTitle, icon);
         }
 
         protected virtual void OnCreateWindow()
@@ -81,6 +82,9 @@ namespace Translations.Editor
         protected virtual void OnGUI()
         {
             InitializeIfRequired();
+
+            if (IsDirty && Prefs_AutoSave)
+                SaveChanges();
         }
 
         protected virtual void OnDestroy()
@@ -111,7 +115,6 @@ namespace Translations.Editor
 
         #region Saving
         private string prefsKey_autoSave => $"{PrefsKeyPrefix}_autosave";
-        private string prefskey_autoSaveTimeLimit => $"{PrefsKeyPrefix}_autosave_timelimit";
 
         private bool? prefs_autoSave = null;
         public bool Prefs_AutoSave
@@ -131,50 +134,11 @@ namespace Translations.Editor
                 EditorPrefs.SetBool(prefsKey_autoSave, value);
 
                 if (IsDirty)
-                    Save();
-
-                _lastSaveTime = (float)EditorApplication.timeSinceStartup;
-                _waitForAutoSave = false;
+                    SaveChanges();
 
                 prefs_autoSave = value;
             }
         }
-
-        private float? prefs_autoSaveTimeLimit = null;
-        public float Prefs_AutoSaveTimeLimit
-        {
-            get
-            {
-                if (prefs_autoSaveTimeLimit == null)
-                    prefs_autoSaveTimeLimit = EditorPrefs.GetFloat(prefskey_autoSaveTimeLimit, 0f);
-
-                return prefs_autoSaveTimeLimit ?? 0f;
-            }
-            set
-            {
-                if (value == prefs_autoSaveTimeLimit)
-                    return;
-
-                value = Mathf.Max(0f, value);
-                EditorPrefs.SetFloat(prefskey_autoSaveTimeLimit, value);
-
-                prefs_autoSaveTimeLimit = value;
-            }
-        }
-
-        void TEMP() =>
-            _ = _waitForAutoSave;
-
-        bool _waitForAutoSave = false;
-        public double TimeToAutoSave => _lastSaveTime - EditorApplication.timeSinceStartup;
-
-        private float _lastSaveTime = float.NegativeInfinity;
-
-        public bool CanAutoSave() =>
-            _lastSaveTime < EditorApplication.timeSinceStartup;
-
-        public float TimeSinceLastSave =>
-            (float)EditorApplication.timeSinceStartup - _lastSaveTime;
 
         private bool? _isDirty = null;
         public bool IsDirty
@@ -191,63 +155,38 @@ namespace Translations.Editor
             }
         }
 
-        public void SetAssetDirty()
+        public virtual void SetAssetDirty()
         {
+            hasUnsavedChanges = true;
             _isDirty = true;
             EditorUtility.SetDirty(asset);
             UpdateWindowTitle();
-
-            if (!Prefs_AutoSave) return;
-
-            if (!CanAutoSave())
-            {
-                _waitForAutoSave = true;
-                return;
-            }
-
-            Save();
         }
 
-        public virtual void Save()
+        public override void SaveChanges()
         {
-            _lastSaveTime = (float)EditorApplication.timeSinceStartup;
-            _waitForAutoSave = false;
             _isDirty = false;
+            hasUnsavedChanges = false;
+
+            var json = JsonUtility.ToJson(asset, true);
+
+            var relativePath = AssetDatabase.GetAssetPath(asset);
+            var path = $"{Application.dataPath}/{relativePath.Remove(0, 7)}";
+            File.WriteAllText(path, json);
+
             UpdateWindowTitle();
         }
 
-        public void DiscardAssetChanges()
+        public override void DiscardChanges()
         {
             _isDirty = false;
-            var unmodifiedJson = SessionState.GetString(UnmodifiedVersionKey, JsonUtility.ToJson(asset));
-            var unmodified = JsonUtility.FromJson<TAsset>(unmodifiedJson);
+            hasUnsavedChanges = false;
+            var relativePath = AssetDatabase.GetAssetPath(asset);
 
-            if (unmodified == null || asset == unmodified)
-                return;
-
-            AssetDatabase.SaveAssets();
-            EditorUtility.ClearDirty(asset);
-            asset = unmodified;
-            DeleteUnmodifiedVersion();
+            AssetDatabase.ImportAsset(relativePath);
 
             UpdateWindowTitle();
-            OnDiscardAssetChanges();
         }
-
-        protected virtual void OnDiscardAssetChanges()
-        {
-
-        }
-        #endregion
-
-        #region Unmodified Version
-        private string UnmodifiedVersionKey => $"{PrefsKeyPrefix}_asset";
-
-        private void SaveUnmodifiedVersion(TAsset asset) =>
-            SessionState.SetString(UnmodifiedVersionKey, JsonUtility.ToJson(asset));
-
-        private void DeleteUnmodifiedVersion() =>
-            SessionState.EraseString(UnmodifiedVersionKey);
         #endregion
 
         #region GUI

@@ -1,4 +1,3 @@
-using Translations.Editor.Mapping;
 using UnityEditor;
 using UnityEngine;
 
@@ -42,7 +41,6 @@ namespace Translations.Editor.Drawers
             
             ToolGuiUtility.BorderAround(borderRect);
             ToolGuiUtility.VerticalLine(colorTagDeviderRect);
-
         }
 
         static class Style

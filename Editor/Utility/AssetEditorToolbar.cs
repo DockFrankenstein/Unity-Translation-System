@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System;
-using Translations.Editor;
 
 namespace Translations.Editor
 {
@@ -61,19 +60,13 @@ namespace Translations.Editor
         protected void GUISaveButton()
         {
             if (GUILayout.Button("Save", EditorStyles.toolbarButton))
-                window.Save();
+                window.SaveChanges();
         }
 
         protected void GUIAutoSaveButton()
         {
-            bool isAutoSaving = window.IsDirty && !window.CanAutoSave() && window.Prefs_AutoSave;
-            string autosaveText = isAutoSaving ? $" ({Mathf.Round((float)window.TimeToAutoSave + 0.5f)}s)" : string.Empty;
-
-            if (GUILayout.Toggle(window.asset != null && window.Prefs_AutoSave, $"Auto save{autosaveText}", EditorStyles.toolbarButton) != window.Prefs_AutoSave)
+            if (GUILayout.Toggle(window.asset != null && window.Prefs_AutoSave, $"Auto Save", EditorStyles.toolbarButton) != window.Prefs_AutoSave)
                 window.Prefs_AutoSave = !window.Prefs_AutoSave;
-
-            if (isAutoSaving)
-                window.Repaint();
         }
     }
 }

@@ -13,12 +13,18 @@ namespace Translations.Editor.Mapping
         public TranslationMappingTree(TreeViewState state, TranslationMapping asset) : base(state)
         {
             Asset = asset;
+            Reload();
+
+            foreach (var item in Items)
+                if (item.Value is GroupItem)
+                    SetExpanded(item.Key, true);
         }
 
         public TranslationMapping Asset { get; set; }
 
         public event Action OnAssetModified;
         public event Action<object> OnDoubleClicked;
+        public event Func<Item, GenericMenu> CreateContextMenu;
 
         private string _betterSearchString;
         public string BetterSearchString 
@@ -32,7 +38,7 @@ namespace Translations.Editor.Mapping
         }
 
         #region Creation
-        Dictionary<int, Item> Items { get; set; } = new Dictionary<int, Item>();
+        public Dictionary<int, Item> Items { get; set; } = new Dictionary<int, Item>();
 
         protected override TreeViewItem BuildRoot() =>
             new TreeViewItem(-1, -1);
@@ -155,6 +161,37 @@ namespace Translations.Editor.Mapping
             OnAssetModified?.Invoke();
             Reload();
         }
+
+        public void BeginRenameObject(object obj)
+        {
+            MakeVisible(obj);
+            Reload();
+            BeginRename(FindItemForObject(obj));
+        }
+
+        public void MakeVisible(object obj, bool first = true)
+        {
+            switch (obj)
+            {
+                case TranslationMappingDynamicValue val:
+                    foreach (var a in Asset.groups.SelectMany(x => x.items)
+                        .Where(x => x.dynamicValues.Contains(val)))
+                        MakeVisible(a, false);
+
+                    break;
+                case TranslationMappingItem item:
+                    foreach (var a in Asset.groups.Where(x => x.items.Contains(item)))
+                        MakeVisible(a, false);
+
+                    if (!first)
+                        SetExpanded(item.GetHashCode(), true);
+                    break;
+                case TranslationMappingGroup group:
+                    if (!first)
+                        SetExpanded(group.GetHashCode(), true);
+                    break;
+            }
+        }
         #endregion
 
         public void DeleteSelection()
@@ -165,27 +202,35 @@ namespace Translations.Editor.Mapping
                     continue;
 
                 var item = Items[itemId];
-                
-                switch (item)
-                {
-                    case GroupItem groupItem:
-                        Asset.groups.Remove(groupItem.group);
-                        break;
-                    case ItemItem itemItem:
-                        var groups = Asset.groups.Where(x => x.items.Contains(itemItem.item));
-                        foreach (var group in groups)
-                            group.items.Remove(itemItem.item);
-                        break;
-                    case DynamicValueItem dynamicValue:
-                        var items = Asset.groups.SelectMany(x => x.items)
-                            .Where(x => x.dynamicValues.Contains(dynamicValue.dynamicValue));
-                        foreach (var a in items)
-                            a.dynamicValues.Remove(dynamicValue.dynamicValue);
-                        break;
-                }
+                Delete(item.Object, true);
             }
 
+            OnAssetModified?.Invoke();
             Reload();
+        }
+
+        public void Delete(object obj, bool silent = false)
+        {
+            switch (obj)
+            {
+                case TranslationMappingGroup group:
+                    Asset.groups.Remove(group);
+                    break;
+                case TranslationMappingItem item:
+                    var groups = Asset.groups.Where(x => x.items.Contains(item));
+                    foreach (var group in groups)
+                        group.items.Remove(item);
+                    break;
+                case TranslationMappingDynamicValue dynamicValue:
+                    var items = Asset.groups.SelectMany(x => x.items)
+                        .Where(x => x.dynamicValues.Contains(dynamicValue));
+                    foreach (var a in items)
+                        a.dynamicValues.Remove(dynamicValue);
+                    break;
+            }
+
+            if (!silent)
+                OnAssetModified?.Invoke();
         }
 
         protected override void DoubleClickedItem(int id)
@@ -201,6 +246,16 @@ namespace Translations.Editor.Mapping
             TreeViewItem item = Items[id];
             if (CanRename(item))
                 BeginRename(item);
+        }
+
+        protected override void ContextClickedItem(int id)
+        {
+            if (CreateContextMenu == null) return;
+            if (!Items.ContainsKey(id)) return;
+
+            var item = Items[id];
+            var menu = CreateContextMenu(item);
+            menu.ShowAsContext();
         }
 
         protected override IList<int> GetDescendantsThatHaveChildren(int id)
@@ -277,12 +332,17 @@ namespace Translations.Editor.Mapping
         }
         #endregion
 
-        class Item : TreeViewItem
+        public Item FindItemForObject(object obj) =>
+            Items.TryGetValue(obj.GetHashCode(), out var val) ?
+            val :
+            null;
+
+        public class Item : TreeViewItem
         {
             public virtual object Object { get; }
         }
 
-        class GroupItem : Item
+        public class GroupItem : Item
         {
             public GroupItem(TranslationMappingGroup group)
             {
@@ -297,7 +357,7 @@ namespace Translations.Editor.Mapping
             public override object Object => group;
         }
 
-        class ItemItem : Item
+        public class ItemItem : Item
         {
             public ItemItem(TranslationMappingItem item)
             {
@@ -312,7 +372,7 @@ namespace Translations.Editor.Mapping
             public override object Object => item;
         }
 
-        class DynamicValueItem : Item
+        public class DynamicValueItem : Item
         {
             public DynamicValueItem(TranslationMappingDynamicValue dynamicValue)
             {
