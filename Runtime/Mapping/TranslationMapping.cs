@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace Translations.Mapping
@@ -8,5 +10,10 @@ namespace Translations.Mapping
         public const string EXTENSION = "transmap";
 
         public List<TranslationMappingGroup> groups = new List<TranslationMappingGroup>();
+
+        public TranslationMappingItem GetItem(string tag) =>
+            groups.SelectMany(x => x.items)
+            .Where(x => x.tag == tag)
+            .FirstOrDefault();
     }
 }

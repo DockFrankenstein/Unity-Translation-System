@@ -268,7 +268,7 @@ namespace Translations.Editor.Mapping
             if (args.performDrop)
             {
                 if (args.insertAtIndex == -1)
-                    args.insertAtIndex = args.parentItem.children.Count;
+                    args.insertAtIndex = args.parentItem.children?.Count ?? 0;
 
                 var insertIndex = args.insertAtIndex;
                 foreach (var item in items)

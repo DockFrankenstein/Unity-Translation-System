@@ -9,12 +9,13 @@ namespace Translations.Editor.Drawers
 {
     public class TranslatableTextExplorer : PopupWindowContent
     {
-        public static void Open(Rect rect, Action<string> onSelect)
+        public static void Open(Rect rect, string defaultValue, Action<string> onSelect)
         {
             var window = new TranslatableTextExplorer();
             var size = new Vector2(Mathf.Clamp(rect.width, 200, 300f), 250f);
 
             window._size = size;
+            window.defaultValue = defaultValue;
             window.OnSelect = onSelect;
 
             PopupWindow.Show(rect, window);
@@ -24,6 +25,7 @@ namespace Translations.Editor.Drawers
         TreeViewState treeState;
 
         Vector2 _size;
+        string defaultValue;
 
         TranslationMapping mapping;
 
@@ -54,11 +56,29 @@ namespace Translations.Editor.Drawers
 
                 tree.Reload();
                 tree.ExpandAll();
+
+                var item = mapping.GetItem(defaultValue);
+
+                if (item != null)
+                {
+                    tree.MakeVisible(item);
+                    tree.SetSelection(new int[] { item.GetHashCode() });
+                }
+
+                tree.SetFocus();
             }
         }
 
+        bool init = false;
+
         public override void OnGUI(Rect rect)
         {
+            if (!init)
+            {
+                init = true;
+                tree?.SetFocus();
+            }
+
             Rect searchRect = rect.ResizeToTop(EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2f)
                 .Border(EditorGUIUtility.standardVerticalSpacing);
             Rect searchBarRect = searchRect
@@ -92,6 +112,9 @@ namespace Translations.Editor.Drawers
                     var selection = tree.GetSelectedObjects();
                     selectDisabled = selection.Count != 1 ||
                         !(selection[0] is TranslationMappingItem);
+
+                    if (Event.current.keyCode == KeyCode.Return && !selectDisabled)
+                        SelectAndClose(tree.GetSelectedItem().tag);
                     break;
             }
 

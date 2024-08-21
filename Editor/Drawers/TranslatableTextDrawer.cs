@@ -15,6 +15,7 @@ namespace Translations.Editor.Drawers
         {
             var tagProperty = property.FindPropertyRelative("tag");
             bool tagSelected = !string.IsNullOrWhiteSpace(tagProperty.stringValue);
+            bool tagExists = TranslationSettings.Instance.mapping.GetItem(tagProperty.stringValue) != null;
 
             var borderRect = EditorGUI.PrefixLabel(position, new GUIContent("Asd"), EditorStyles.label);
 
@@ -29,7 +30,7 @@ namespace Translations.Editor.Drawers
 
             if (GUI.Button(tagRect, tagSelected ? tagProperty.stringValue : "NONE SELECTED", EditorStyles.label))
             {
-                TranslatableTextExplorer.Open(borderRect, a =>
+                TranslatableTextExplorer.Open(borderRect, tagProperty.stringValue, a =>
                 {
                     tagProperty.stringValue = a;
                     property.serializedObject.ApplyModifiedProperties();
@@ -37,7 +38,9 @@ namespace Translations.Editor.Drawers
             }
 
             if (tagSelected)
-                ToolGuiUtility.DrawColor(colorTagRect, new Color(30f / 255f, 89f / 255f, 250f / 255f));
+                ToolGuiUtility.DrawColor(colorTagRect, tagExists ?
+                    new Color(154f / 255f, 157f / 255f, 255f / 255f) :
+                    new Color(255f / 255f, 114f / 255f, 117f / 255f));
             
             ToolGuiUtility.BorderAround(borderRect);
             ToolGuiUtility.VerticalLine(colorTagDeviderRect);
