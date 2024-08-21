@@ -37,6 +37,8 @@ namespace Translations.Editor.Mapping
             }
         }
 
+        public bool ReadOnly { get; set; }
+
         #region Creation
         public Dictionary<int, Item> Items { get; set; } = new Dictionary<int, Item>();
 
@@ -155,7 +157,7 @@ namespace Translations.Editor.Mapping
 
         #region Renaming
         protected override bool CanRename(TreeViewItem item) =>
-            true;
+            !ReadOnly;
 
         protected override void RenameEnded(RenameEndedArgs args)
         {
@@ -216,6 +218,9 @@ namespace Translations.Editor.Mapping
         #region Drag & Drop
         protected override bool CanStartDrag(CanStartDragArgs args)
         {
+            if (ReadOnly)
+                return false;
+
             var items = args.draggedItemIDs
                 .Where(x => Items.ContainsKey(x))
                 .Select(x => Items[x]);
@@ -297,6 +302,9 @@ namespace Translations.Editor.Mapping
 
         public void DeleteSelection()
         {
+            if (ReadOnly)
+                return;
+
             foreach (var itemId in GetSelection())
             {
                 if (!Items.ContainsKey(itemId))
@@ -312,6 +320,9 @@ namespace Translations.Editor.Mapping
 
         public void Delete(object obj, bool silent = false)
         {
+            if (ReadOnly)
+                return;
+
             switch (obj)
             {
                 case TranslationMappingGroup group:
@@ -344,9 +355,12 @@ namespace Translations.Editor.Mapping
                 return;
             }
 
-            TreeViewItem item = Items[id];
-            if (CanRename(item))
-                BeginRename(item);
+            if (!ReadOnly)
+            {
+                TreeViewItem item = Items[id];
+                if (CanRename(item))
+                    BeginRename(item);
+            }
         }
 
         protected override void ContextClickedItem(int id)

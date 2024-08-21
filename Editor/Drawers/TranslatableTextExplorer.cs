@@ -41,7 +41,11 @@ namespace Translations.Editor.Drawers
             if (mapping != null)
             {
                 treeState = new TreeViewState();
-                tree = new TranslationMappingTree(treeState, mapping);
+                tree = new TranslationMappingTree(treeState, mapping)
+                {
+                    ReadOnly = true,
+                };
+
                 tree.OnDoubleClicked += obj =>
                 {
                     if (obj is TranslationMappingItem item)
