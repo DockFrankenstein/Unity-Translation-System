@@ -41,12 +41,13 @@ namespace Translations.Editor.Mapping
         public Dictionary<int, Item> Items { get; set; } = new Dictionary<int, Item>();
 
         protected override TreeViewItem BuildRoot() =>
-            new TreeViewItem(-1, -1);
+            new RootItem(Asset);
 
         protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
         {
             var list = new List<TreeViewItem>() ?? base.BuildRows(root);
             Items.Clear();
+            Items.Add(0, root as Item);
 
             if (Asset != null)
             {
@@ -65,33 +66,39 @@ namespace Translations.Editor.Mapping
                         Items.Add(groupItem.id, groupItem);
                     }
 
-                    if (IsExpanded(groupItem.id))
+                    switch (IsExpanded(groupItem.id))
                     {
-                        foreach (var item in items)
-                        {
-                            var itemItem = new ItemItem(item);
-                            groupItem.AddChild(itemItem);
-                            list.Add(itemItem);
-                            Items.Add(itemItem.id, itemItem);
-
-                            if (IsExpanded(itemItem.id))
+                        case true:
+                            foreach (var item in items)
                             {
-                                foreach (var val in item.dynamicValues)
+                                var itemItem = new ItemItem(item);
+                                groupItem.AddChild(itemItem);
+                                list.Add(itemItem);
+                                Items.Add(itemItem.id, itemItem);
+
+                                switch (IsExpanded(itemItem.id))
                                 {
-                                    var valItem = new DynamicValueItem(val);
-                                    itemItem.AddChild(valItem);
-                                    list.Add(valItem);
-                                    Items.Add(valItem.id, valItem);
+                                    case true:
+                                        foreach (var val in item.dynamicValues)
+                                        {
+                                            var valItem = new DynamicValueItem(val);
+                                            itemItem.AddChild(valItem);
+                                            list.Add(valItem);
+                                            Items.Add(valItem.id, valItem);
+                                        }
+                                        break;
+                                    case false:
+                                        if (item.dynamicValues.Count > 0)
+                                            itemItem.children = CreateChildListForCollapsedParent();     
+                                        break;
                                 }
                             }
-
-                            if (item.dynamicValues.Count > 0)
-                                itemItem.children = CreateChildListForCollapsedParent();
-                        }
+                            break;
+                        case false:
+                            if (group.items.Count > 0)
+                                groupItem.children = CreateChildListForCollapsedParent();
+                            break;
                     }
-
-                    if (group.items.Count > 0)
-                        groupItem.children = CreateChildListForCollapsedParent();
                 }
             }
 
@@ -203,6 +210,88 @@ namespace Translations.Editor.Mapping
                         SetExpanded(group.GetHashCode(), true);
                     break;
             }
+        }
+        #endregion
+
+        #region Drag & Drop
+        protected override bool CanStartDrag(CanStartDragArgs args)
+        {
+            var items = args.draggedItemIDs
+                .Where(x => Items.ContainsKey(x))
+                .Select(x => Items[x]);
+
+            return items.All(x => x is GroupItem) ||
+                items.All(x => x is ItemItem) ||
+                items.All(x => x is DynamicValueItem);
+        }
+
+        protected override void SetupDragAndDrop(SetupDragAndDropArgs args)
+        {
+            DragAndDrop.PrepareStartDrag();
+            DragAndDrop.SetGenericData("itemIDs", args.draggedItemIDs);
+            DragAndDrop.SetGenericData("tree", this);
+            DragAndDrop.StartDrag(Items[args.draggedItemIDs[0]].displayName);
+        }
+
+        protected override DragAndDropVisualMode HandleDragAndDrop(DragAndDropArgs args)
+        {
+            if (!(DragAndDrop.GetGenericData("tree") is TranslationMappingTree sourceTree) ||
+                sourceTree != this)
+                return DragAndDropVisualMode.Rejected;
+
+            IList<int> itemIDs = (IList<int>)DragAndDrop.GetGenericData("itemIDs");
+            var items = itemIDs
+                .Where(x => Items.ContainsKey(x))
+                .Select(x => Items[x]);
+
+            switch (items.FirstOrDefault())
+            {
+                case GroupItem group:
+                    if (args.parentItem == rootItem)
+                        break;
+                    return DragAndDropVisualMode.Rejected;
+                case ItemItem item:
+                    if (args.parentItem is GroupItem)
+                        break;
+                    return DragAndDropVisualMode.Rejected;
+                case DynamicValueItem val:
+                    if (args.parentItem is ItemItem)
+                        break;
+                    return DragAndDropVisualMode.Rejected;
+            }
+
+            if (args.performDrop)
+            {
+                if (args.insertAtIndex == -1)
+                    args.insertAtIndex = args.parentItem.children.Count;
+
+                var insertIndex = args.insertAtIndex;
+                foreach (var item in items)
+                {
+                    var index = (args.parentItem as Item).IndexOf(item);
+                    if (index == -1) continue;
+
+                    if (index < args.insertAtIndex)
+                        insertIndex--;
+                }
+
+                foreach (var item in items)
+                {
+                    (item.parent as Item).Remove(item);
+                }
+
+                foreach (var item in items)
+                {
+                    (args.parentItem as Item).Insert(insertIndex, item);
+                    insertIndex++;
+                }
+
+                OnAssetModified?.Invoke();
+                Reload();
+                SetSelection(itemIDs);
+            }
+
+            return DragAndDropVisualMode.Move;
         }
         #endregion
 
@@ -352,6 +441,46 @@ namespace Translations.Editor.Mapping
         public class Item : TreeViewItem
         {
             public virtual object Object { get; }
+
+            public virtual void Insert(int index, Item item) { }
+
+            public virtual void Remove(Item item) { }
+
+            public virtual int IndexOf(Item item) => -1;
+        }
+
+        public class RootItem : Item
+        {
+            public RootItem(TranslationMapping asset)
+            {
+                this.asset = asset;
+                id = 0;
+                depth = -1;
+            }
+
+            public TranslationMapping asset;
+
+            public override object Object => asset;
+
+            public override void Insert(int index, Item item)
+            {
+                if (item is GroupItem group)
+                    asset.groups.Insert(index, group.group);
+            }
+
+            public override void Remove(Item item)
+            {
+                if (item is GroupItem group)
+                    asset.groups.Remove(group.group);
+            }
+
+            public override int IndexOf(Item item)
+            {
+                if (item is GroupItem group)
+                    return asset.groups.IndexOf(group.group);
+
+                return base.IndexOf(item);
+            }
         }
 
         public class GroupItem : Item
@@ -367,6 +496,26 @@ namespace Translations.Editor.Mapping
             public TranslationMappingGroup group;
 
             public override object Object => group;
+
+            public override void Insert(int index, Item item)
+            {
+                if (item is ItemItem itemItem)
+                    group.items.Insert(index, itemItem.item);
+            }
+
+            public override void Remove(Item item)
+            {
+                if (item is ItemItem itemItem)
+                    group.items.Remove(itemItem.item);
+            }
+
+            public override int IndexOf(Item item)
+            {
+                if (item is ItemItem itemItem)
+                    return group.items.IndexOf(itemItem.item);
+
+                return base.IndexOf(item);
+            }
         }
 
         public class ItemItem : Item
@@ -382,6 +531,26 @@ namespace Translations.Editor.Mapping
             public TranslationMappingItem item;
 
             public override object Object => item;
+
+            public override void Insert(int index, Item item)
+            {
+                if (item is DynamicValueItem val)
+                    this.item.dynamicValues.Insert(index, val.dynamicValue);
+            }
+
+            public override void Remove(Item item)
+            {
+                if (item is DynamicValueItem val)
+                    this.item.dynamicValues.Remove(val.dynamicValue);
+            }
+
+            public override int IndexOf(Item item)
+            {
+                if (item is DynamicValueItem val)
+                    return this.item.dynamicValues.IndexOf(val.dynamicValue);
+
+                return base.IndexOf(item);
+            }
         }
 
         public class DynamicValueItem : Item
