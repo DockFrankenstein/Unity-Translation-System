@@ -32,6 +32,26 @@ namespace Translations.Editor
             new Color(58f / 255f, 114f / 255f, 176f / 255f);
         public static Texture2D SelectedColorTexture => GenerateColorTexture(SelectedColor);
 
+        /// <summary>Draws serialized objects properties</summary>
+        /// <param name="obj">Object to draw</param>
+        /// <param name="skipFirst">Skips the first property. Do this if you want to hide the script field</param>
+        public static void DrawObjectsProperties(SerializedObject obj, bool skipFirst = true)
+        {
+            SerializedProperty property = obj.GetIterator();
+            if (!property.NextVisible(true)) return;
+
+            do
+            {
+                if (skipFirst)
+                {
+                    skipFirst = false;
+                    continue;
+                }
+
+                EditorGUILayout.PropertyField(property, true);
+            }
+            while (property.NextVisible(false));
+        }
 
         public static Texture2D GenerateColorTexture(Color color)
         {

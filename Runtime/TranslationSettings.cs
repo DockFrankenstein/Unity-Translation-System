@@ -40,5 +40,14 @@ namespace Translations
         }
 
         public TranslationMapping mapping;
+
+        [Header("Path")]
+        public string translationsPath = "Translations";
+        public string editorTranslationsPath = "Translations/Default";
+
+        [Header("Info File")]
+        public string infoFileName = "info.json";
+        public string infoNameField = "Name";
+        public string infoAuthorsField = "Authors";
     }
 }

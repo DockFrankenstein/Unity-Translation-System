@@ -20,9 +20,10 @@ namespace Translations.Editor
 
         public override void OnGUI(string searchContext)
         {
-            EditorGUILayout.PropertyField(serializedSettings.FindProperty("mapping"));
+            ToolGuiUtility.DrawObjectsProperties(serializedSettings);
 
-            serializedSettings.ApplyModifiedProperties();
+            if (serializedSettings.hasModifiedProperties)
+                serializedSettings.ApplyModifiedProperties();
         }
 
         [SettingsProvider]

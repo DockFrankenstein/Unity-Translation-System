@@ -17,11 +17,19 @@ namespace Translations
             set => tag = value;
         }
 
+        bool reigsteredToManager;
+
         /// <summary>Loads translation text.</summary>
         /// <param name="silent">When true, <see cref="OnLoad"/> will not be invoked.</param>
         /// <returns>Returns the loaded text.</returns>
         public string Load(bool silent = false)
         {
+            if (!reigsteredToManager)
+            {
+                TranslationManager.OnLoad += () => Load(); 
+                reigsteredToManager = true;
+            }
+
             var value = TranslationManager.GetText(tag);
 
             if (!silent)
