@@ -2,7 +2,8 @@
     "name": "Translations",
     "rootNamespace": "",
     "references": [
-        "com.unity.nuget.newtonsoft-json"
+        "com.unity.nuget.newtonsoft-json",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

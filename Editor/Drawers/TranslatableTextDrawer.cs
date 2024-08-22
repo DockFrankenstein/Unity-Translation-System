@@ -15,7 +15,7 @@ namespace Translations.Editor.Drawers
         {
             var tagProperty = property.FindPropertyRelative("tag");
             bool tagSelected = !string.IsNullOrWhiteSpace(tagProperty.stringValue);
-            bool tagExists = TranslationSettings.Instance.mapping.GetItem(tagProperty.stringValue) != null;
+            bool tagExists = TranslationSettings.Instance.mapping.FindItem(tagProperty.stringValue) != null;
 
             var borderRect = EditorGUI.PrefixLabel(position, new GUIContent("Asd"), EditorStyles.label);
 

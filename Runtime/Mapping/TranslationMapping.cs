@@ -10,7 +10,10 @@ namespace Translations.Mapping
 
         public List<TranslationMappingGroup> groups = new List<TranslationMappingGroup>();
 
-        public TranslationMappingItem GetItem(string tag) =>
+        public IEnumerable<TranslationMappingItem> GetAllItems() =>
+            groups.SelectMany(x => x.items);
+
+        public TranslationMappingItem FindItem(string tag) =>
             groups.SelectMany(x => x.items)
             .Where(x => x.tag == tag)
             .FirstOrDefault();

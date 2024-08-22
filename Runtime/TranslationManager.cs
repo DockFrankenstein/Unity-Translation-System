@@ -25,13 +25,13 @@ namespace Translations
         public static void LoadTranslation(RuntimeTranslation translation)
         {
             LoadedTranslation = translation;
+            Debug.Log($"Loaded translation {translation.Info.Name}");
             OnLoad?.Invoke();
         }
 
-        public static string GetText(string tag)
-        {
-            return tag;
-        }
-
+        public static string GetText(string tag) =>
+            LoadedTranslation?.Values?.TryGetValue(tag, out var val) == true ?
+            val.text :
+            tag;
     }
 }

@@ -57,7 +57,7 @@ namespace Translations.Editor.Drawers
                 tree.Reload();
                 tree.ExpandAll();
 
-                var item = mapping.GetItem(defaultValue);
+                var item = mapping.FindItem(defaultValue);
 
                 if (item != null)
                 {
