@@ -8,7 +8,7 @@ namespace Translations
     public class TranslatableText
     {
         [SerializeField] string tag;
-        public event Action<string> OnLoad;
+        public event Action<object> OnLoad;
 
         /// <summary>Tag that will be used for identifying the correct text in a translation.</summary>
         public string Tag
@@ -22,7 +22,7 @@ namespace Translations
         /// <summary>Loads translation text.</summary>
         /// <param name="silent">When true, <see cref="OnLoad"/> will not be invoked.</param>
         /// <returns>Returns the loaded text.</returns>
-        public string Load(bool silent = false)
+        public object Load(bool silent = false)
         {
             if (!reigsteredToManager)
             {
@@ -30,7 +30,7 @@ namespace Translations
                 reigsteredToManager = true;
             }
 
-            var value = TranslationManager.GetText(tag);
+            var value = TranslationManager.GetValue(tag);
 
             if (!silent)
                 OnLoad?.Invoke(value);

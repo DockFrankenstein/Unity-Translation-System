@@ -4,9 +4,9 @@ using Translations.Mapping;
 
 namespace Translations.Editor.Mapping
 {
-    internal class TranslationMappingEditorToolbar : AssetEditorToolbar<TranslationMappingWindow, TranslationMapping>
+    internal class MappingEditorToolbar : AssetEditorToolbar<MappingWindow, Translations.Mapping.Mapping>
     {
-        public TranslationMappingEditorToolbar(TranslationMappingWindow window) : base(window)
+        public MappingEditorToolbar(MappingWindow window) : base(window)
         {
         }
 

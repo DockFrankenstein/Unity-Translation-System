@@ -8,9 +8,9 @@ using UnityEngine;
 
 namespace Translations.Editor.Mapping
 {
-    internal class TranslationMappingTree : TreeView
+    internal class MappingTree : TreeView
     {
-        public TranslationMappingTree(TreeViewState state, TranslationMapping asset) : base(state)
+        public MappingTree(TreeViewState state, Translations.Mapping.Mapping asset) : base(state)
         {
             Asset = asset;
             Reload();
@@ -20,10 +20,11 @@ namespace Translations.Editor.Mapping
                     SetExpanded(item.Key, true);
         }
 
-        public TranslationMapping Asset { get; set; }
+        public Translations.Mapping.Mapping Asset { get; set; }
 
         public event Action OnAssetModified;
         public event Action<object> OnDoubleClicked;
+        public event Action<IEnumerable<Item>> OnSelectionChanged;
         public event Func<Item, GenericMenu> CreateContextMenu;
 
         private string _betterSearchString;
@@ -194,20 +195,20 @@ namespace Translations.Editor.Mapping
         {
             switch (obj)
             {
-                case TranslationMappingDynamicValue val:
+                case MappingDynamicValue val:
                     foreach (var a in Asset.groups.SelectMany(x => x.items)
                         .Where(x => x.dynamicValues.Contains(val)))
                         MakeVisible(a, false);
 
                     break;
-                case TranslationMappingItem item:
+                case MappingItem item:
                     foreach (var a in Asset.groups.Where(x => x.items.Contains(item)))
                         MakeVisible(a, false);
 
                     if (!first)
                         SetExpanded(item.GetHashCode(), true);
                     break;
-                case TranslationMappingGroup group:
+                case MappingGroup group:
                     if (!first)
                         SetExpanded(group.GetHashCode(), true);
                     break;
@@ -240,7 +241,7 @@ namespace Translations.Editor.Mapping
 
         protected override DragAndDropVisualMode HandleDragAndDrop(DragAndDropArgs args)
         {
-            if (!(DragAndDrop.GetGenericData("tree") is TranslationMappingTree sourceTree) ||
+            if (!(DragAndDrop.GetGenericData("tree") is MappingTree sourceTree) ||
                 sourceTree != this)
                 return DragAndDropVisualMode.Rejected;
 
@@ -325,15 +326,15 @@ namespace Translations.Editor.Mapping
 
             switch (obj)
             {
-                case TranslationMappingGroup group:
+                case MappingGroup group:
                     Asset.groups.Remove(group);
                     break;
-                case TranslationMappingItem item:
+                case MappingItem item:
                     var groups = Asset.groups.Where(x => x.items.Contains(item));
                     foreach (var group in groups)
                         group.items.Remove(item);
                     break;
-                case TranslationMappingDynamicValue dynamicValue:
+                case MappingDynamicValue dynamicValue:
                     var items = Asset.groups.SelectMany(x => x.items)
                         .Where(x => x.dynamicValues.Contains(dynamicValue));
                     foreach (var a in items)
@@ -395,7 +396,7 @@ namespace Translations.Editor.Mapping
         }
 
         #region Selection
-        public TranslationMappingGroup GetSelectedGroup()
+        public MappingGroup GetSelectedGroup()
         {
             var selection = GetSelection();
 
@@ -413,11 +414,11 @@ namespace Translations.Editor.Mapping
             return null;
         }
 
-        public TranslationMappingItem GetSelectedItem()
+        public MappingItem GetSelectedItem()
         {
             var selection = GetSelection();
 
-            TranslationMappingItem finalItem = null;
+            MappingItem finalItem = null;
             foreach (var itemId in selection)
             {
                 if (!Items.ContainsKey(itemId))
@@ -445,6 +446,14 @@ namespace Translations.Editor.Mapping
                 .Select(x => Items[x].Object)
                 .ToList();
         }
+
+        protected override void SelectionChanged(IList<int> selectedIds)
+        {
+            base.SelectionChanged(selectedIds);
+            OnSelectionChanged?.Invoke(selectedIds
+                .Where(x => Items.ContainsKey(x))
+                .Select(x => Items[x]));
+        }
         #endregion
 
         public Item FindItemForObject(object obj) =>
@@ -465,14 +474,14 @@ namespace Translations.Editor.Mapping
 
         public class RootItem : Item
         {
-            public RootItem(TranslationMapping asset)
+            public RootItem(Translations.Mapping.Mapping asset)
             {
                 this.asset = asset;
                 id = 0;
                 depth = -1;
             }
 
-            public TranslationMapping asset;
+            public Translations.Mapping.Mapping asset;
 
             public override object Object => asset;
 
@@ -499,7 +508,7 @@ namespace Translations.Editor.Mapping
 
         public class GroupItem : Item
         {
-            public GroupItem(TranslationMappingGroup group)
+            public GroupItem(MappingGroup group)
             {
                 this.group = group;
                 id = group.GetHashCode();
@@ -507,7 +516,7 @@ namespace Translations.Editor.Mapping
                 depth = 0;
             }
 
-            public TranslationMappingGroup group;
+            public MappingGroup group;
 
             public override object Object => group;
 
@@ -534,7 +543,7 @@ namespace Translations.Editor.Mapping
 
         public class ItemItem : Item
         {
-            public ItemItem(TranslationMappingItem item)
+            public ItemItem(MappingItem item)
             {
                 this.item = item;
                 id = item.GetHashCode();
@@ -542,7 +551,7 @@ namespace Translations.Editor.Mapping
                 depth = 1;
             }
 
-            public TranslationMappingItem item;
+            public MappingItem item;
 
             public override object Object => item;
 
@@ -569,7 +578,7 @@ namespace Translations.Editor.Mapping
 
         public class DynamicValueItem : Item
         {
-            public DynamicValueItem(TranslationMappingDynamicValue dynamicValue)
+            public DynamicValueItem(MappingDynamicValue dynamicValue)
             {
                 this.dynamicValue = dynamicValue;
                 id = dynamicValue.GetHashCode();
@@ -577,7 +586,7 @@ namespace Translations.Editor.Mapping
                 depth = 2;
             }
 
-            public TranslationMappingDynamicValue dynamicValue;
+            public MappingDynamicValue dynamicValue;
 
             public override object Object => dynamicValue;
         }

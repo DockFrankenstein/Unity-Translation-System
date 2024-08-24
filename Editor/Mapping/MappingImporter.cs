@@ -5,12 +5,12 @@ using UnityEngine;
 
 using UnityEditor.AssetImporters;
 
-using TargetFile = Translations.Mapping.TranslationMapping;
+using TargetFile = Translations.Mapping.Mapping;
 
 namespace Translations.Editor.Mapping
 {
     [ScriptedImporter(VERSION, TargetFile.EXTENSION)]
-    internal class TranslationMappingImporter : ScriptedImporter
+    internal class MappingImporter : ScriptedImporter
     {
         private const int VERSION = 0;
         private const string DEFAULT_ASSET_CONTENT = "";

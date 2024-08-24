@@ -39,7 +39,7 @@ namespace Translations
             }
         }
 
-        public TranslationMapping mapping;
+        public Mapping.Mapping mapping;
 
         [Header("Path")]
         public string translationsPath = "Translations";

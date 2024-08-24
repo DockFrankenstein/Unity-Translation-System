@@ -4,16 +4,16 @@ using UnityEngine;
 
 namespace Translations.Mapping
 {
-    public class TranslationMapping : ScriptableObject
+    public class Mapping : ScriptableObject
     {
         public const string EXTENSION = "transmap";
 
-        public List<TranslationMappingGroup> groups = new List<TranslationMappingGroup>();
+        public List<MappingGroup> groups = new List<MappingGroup>();
 
-        public IEnumerable<TranslationMappingItem> GetAllItems() =>
+        public IEnumerable<MappingItem> GetAllItems() =>
             groups.SelectMany(x => x.items);
 
-        public TranslationMappingItem FindItem(string tag) =>
+        public MappingItem FindItem(string tag) =>
             groups.SelectMany(x => x.items)
             .Where(x => x.tag == tag)
             .FirstOrDefault();

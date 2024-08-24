@@ -3,24 +3,26 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using Translations.Mapping;
 using UnityEditor.Callbacks;
+using UnityEngine;
 
 namespace Translations.Editor.Mapping
 {
-    internal class TranslationMappingWindow : AssetEditorWindow<TranslationMappingWindow, TranslationMapping>
+    internal class MappingWindow : AssetEditorWindow<MappingWindow, Translations.Mapping.Mapping>
     {
         public override string WindowTitle => "Translation Mapping Editor";
 
         public override string PrefsKeyPrefix => "transmap";
 
-        public TranslationMappingEditorToolbar toolbar;
-        public TranslationMappingTree tree;
+        public MappingEditorToolbar toolbar;
+        public MappingTree tree;
         public TreeViewState treeState;
+        public MappingWindowInspector inspector;
 
         [OnOpenAsset]
         public static bool OnOpenAsset(int instanceID, int line)
         {
             object obj = EditorUtility.InstanceIDToObject(instanceID);
-            if (!(obj is TranslationMapping asset))
+            if (!(obj is Translations.Mapping.Mapping asset))
                 return false;
 
             OpenAsset(asset);
@@ -30,24 +32,24 @@ namespace Translations.Editor.Mapping
         protected override void Initialize()
         {
             base.Initialize();
-            toolbar = new TranslationMappingEditorToolbar(this);
+            toolbar = new MappingEditorToolbar(this);
 
             if (treeState == null)
                 treeState = new TreeViewState();
 
-            tree = new TranslationMappingTree(treeState, asset);
+            tree = new MappingTree(treeState, asset);
             tree.OnAssetModified += SetAssetDirty;
             tree.CreateContextMenu += item =>
             {
                 var menu = new GenericMenu();
 
-                if (item is TranslationMappingTree.GroupItem group)
+                if (item is MappingTree.GroupItem group)
                 {
                     menu.AddItem("Add Item", false, () => CreateNewItem(group.group));
                     menu.AddSeparator("");
                 }
 
-                if (item is TranslationMappingTree.ItemItem itemItem)
+                if (item is MappingTree.ItemItem itemItem)
                 {
                     menu.AddItem("Add Dynamic Value", false, () => CreateNewDynamicValue(itemItem.item));
                     menu.AddSeparator("");
@@ -58,6 +60,11 @@ namespace Translations.Editor.Mapping
 
                 return menu;
             };
+
+            if (inspector == null)
+                inspector = new MappingWindowInspector(this);
+
+            inspector.Initialize();
         }
 
         protected override void OnGUI()
@@ -65,7 +72,18 @@ namespace Translations.Editor.Mapping
             base.OnGUI();
 
             toolbar.OnGUI();
-            DrawTreeView(tree);
+
+            using (new GUILayout.HorizontalScope())
+            {
+                DrawTreeView(tree);
+                using (new GUILayout.VerticalScope(GUILayout.Width(inspector.Width)))
+                {
+                    inspector.OnGUI();
+                    GUILayout.FlexibleSpace();
+                }
+
+                ToolGuiUtility.VerticalLine(GUILayoutUtility.GetLastRect().ResizeToLeft(0f));
+            }
         }
 
         public override void SetAssetDirty()
@@ -76,7 +94,7 @@ namespace Translations.Editor.Mapping
 
         public void CreateNewGroup()
         {
-            var group = new TranslationMappingGroup("New Group");
+            var group = new MappingGroup("New Group");
 
             asset.groups.Add(group);
             tree.Reload();
@@ -93,9 +111,9 @@ namespace Translations.Editor.Mapping
             CreateNewItem(group);
         }
 
-        public void CreateNewItem(TranslationMappingGroup group)
+        public void CreateNewItem(MappingGroup group)
         {
-            var item = new TranslationMappingItem("New Item");
+            var item = new MappingItem("New Item");
 
             group.items.Add(item);
             tree.Reload();
@@ -117,9 +135,9 @@ namespace Translations.Editor.Mapping
             CreateNewDynamicValue(item);
         }
 
-        public void CreateNewDynamicValue(TranslationMappingItem item)
+        public void CreateNewDynamicValue(MappingItem item)
         {
-            var val = new TranslationMappingDynamicValue("New Dynamic Value");
+            var val = new MappingDynamicValue("New Dynamic Value");
             item.dynamicValues.Add(val);
             tree.Reload();
             tree.BeginRenameObject(val);

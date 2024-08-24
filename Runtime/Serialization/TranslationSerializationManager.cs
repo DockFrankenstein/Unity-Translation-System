@@ -114,7 +114,7 @@ namespace Translations.Serialization
                         var val = (string)item.Value;
 
                         if (val != null)
-                            translation.Values[item.Key].text = val;
+                            translation.Values[item.Key].value = val;
                     }
 
                     break;

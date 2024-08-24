@@ -29,9 +29,9 @@ namespace Translations
             OnLoad?.Invoke();
         }
 
-        public static string GetText(string tag) =>
+        public static object GetValue(string tag) =>
             LoadedTranslation?.Values?.TryGetValue(tag, out var val) == true ?
-            val.text :
+            val.value :
             tag;
     }
 }

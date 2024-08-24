@@ -15,10 +15,10 @@ namespace Translations
             translatableText.Load();
         }
 
-        private void TranslatableText_OnLoad(string txt)
+        private void TranslatableText_OnLoad(object val)
         {
             if (target != null)
-                target.text = txt;
+                target.text = val.ToString();
         }
     }
 }

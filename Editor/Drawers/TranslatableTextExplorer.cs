@@ -21,13 +21,13 @@ namespace Translations.Editor.Drawers
             PopupWindow.Show(rect, window);
         }
 
-        TranslationMappingTree tree;
+        MappingTree tree;
         TreeViewState treeState;
 
         Vector2 _size;
         string defaultValue;
 
-        TranslationMapping mapping;
+        Translations.Mapping.Mapping mapping;
 
         public Action<string> OnSelect;
 
@@ -43,14 +43,14 @@ namespace Translations.Editor.Drawers
             if (mapping != null)
             {
                 treeState = new TreeViewState();
-                tree = new TranslationMappingTree(treeState, mapping)
+                tree = new MappingTree(treeState, mapping)
                 {
                     ReadOnly = true,
                 };
 
                 tree.OnDoubleClicked += obj =>
                 {
-                    if (obj is TranslationMappingItem item)
+                    if (obj is MappingItem item)
                         SelectAndClose(item);
                 };
 
@@ -111,7 +111,7 @@ namespace Translations.Editor.Drawers
 
                     var selection = tree.GetSelectedObjects();
                     selectDisabled = selection.Count != 1 ||
-                        !(selection[0] is TranslationMappingItem);
+                        !(selection[0] is MappingItem);
 
                     if (Event.current.keyCode == KeyCode.Return && !selectDisabled)
                         SelectAndClose(tree.GetSelectedItem().tag);
@@ -125,7 +125,7 @@ namespace Translations.Editor.Drawers
             }
         }
 
-        void SelectAndClose(TranslationMappingItem item) =>
+        void SelectAndClose(MappingItem item) =>
             SelectAndClose(item.tag);
 
         void SelectAndClose(string tag)

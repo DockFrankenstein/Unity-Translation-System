@@ -3,10 +3,10 @@
 namespace Translations.Mapping
 {
     [Serializable]
-    public class TranslationMappingDynamicValue
+    public class MappingDynamicValue
     {
-        public TranslationMappingDynamicValue() { }
-        public TranslationMappingDynamicValue(string tag)
+        public MappingDynamicValue() { }
+        public MappingDynamicValue(string tag)
         {
             this.tag = tag;
         }

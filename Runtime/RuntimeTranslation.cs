@@ -7,7 +7,7 @@ namespace Translations
 {
     public class RuntimeTranslation : IEnumerable<RuntimeTranslation.Item>
     {
-        public RuntimeTranslation(TranslationInfo info, TranslationMapping mapping) : this(info)
+        public RuntimeTranslation(TranslationInfo info, Mapping.Mapping mapping) : this(info)
         {
             Values = mapping.GetAllItems()
                 .ToDictionary(x => x.tag, x => new Item(x));
@@ -34,16 +34,16 @@ namespace Translations
         public class Item
         {
             public Item() { }
-            public Item(TranslationMappingItem mappingItem)
+            public Item(MappingItem mappingItem)
             {
                 tag = mappingItem.tag;
-                text = mappingItem.defaultValue;
+                value = mappingItem.defaultValue.ValueObject;
                 this.mappingItem = mappingItem;
             }
 
             public string tag;
-            public string text;
-            public TranslationMappingItem mappingItem;
+            public object value;
+            public MappingItem mappingItem;
         }
     }
 }

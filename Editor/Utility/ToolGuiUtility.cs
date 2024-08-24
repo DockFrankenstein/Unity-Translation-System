@@ -4,6 +4,10 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
+using UnityObject = UnityEngine.Object;
+using UnityEngine.UI;
+using UnityEngine.UIElements;
+
 namespace Translations.Editor
 {
     internal static partial class ToolGuiUtility
@@ -16,6 +20,13 @@ namespace Translations.Editor
         public static Texture MinusIcon => EditorGUIUtility.IconContent("Toolbar Minus").image;
         public static Texture MinusIconMore => EditorGUIUtility.IconContent("Toolbar Minus More").image;
 
+
+        public static GUILayoutOption[] TextAreaOptions =>
+            new GUILayoutOption[] 
+            { 
+                GUILayout.MinHeight(EditorGUIUtility.singleLineHeight * 5f -
+                    EditorGUIUtility.standardVerticalSpacing * 7f) 
+            };
 
         public static Color BorderColor => EditorGUIUtility.isProSkin ? new Color(0.1372549019607843f, 0.1372549019607843f, 0.1372549019607843f) : new Color(0.6f, 0.6f, 0.6f);
         public static Texture2D BorderTexture => GenerateColorTexture(BorderColor);
@@ -51,6 +62,99 @@ namespace Translations.Editor
                 EditorGUILayout.PropertyField(property, true);
             }
             while (property.NextVisible(false));
+        }
+
+        public static void DrawPropertiesToEnd(SerializedObject obj, string startProperty) =>
+            DrawPropertiesInRangeIfSpecified(obj, true, startProperty, false, string.Empty);
+
+        public static void DrawPropertiesFromStart(SerializedObject obj, string endProperty) =>
+            DrawPropertiesInRangeIfSpecified(obj, false, string.Empty, true, endProperty);
+
+        public static void DrawPropertiesInRange(SerializedObject obj, string startProperty, string endProperty) =>
+            DrawPropertiesInRangeIfSpecified(obj, true, startProperty, true, endProperty);
+
+        public static Rect DrawProperty(Rect rect, SerializedProperty property)
+        {
+            property = property.Copy();
+            int startDepth = property.depth;
+            float height = 0f;
+
+            Rect r = rect.SetHeight(EditorGUIUtility.singleLineHeight);
+
+            if (property.NextVisible(true) && property.depth > startDepth)
+            {
+                DrawCurrent();
+                while (property.NextVisible(false) && property.depth > startDepth)
+                    DrawCurrent();
+            }
+
+            return rect.SetHeight(height);
+
+            void DrawCurrent()
+            {
+                var p = property.Copy();
+                EditorGUI.PropertyField(r, p);
+
+                height += EditorGUI.GetPropertyHeight(p);
+                r = r.MoveY(EditorGUI.GetPropertyHeight(p) + EditorGUIUtility.standardVerticalSpacing);
+            }
+        }
+
+        public static void DrawPropertyLayout(SerializedProperty property)
+        {
+            property = property.Copy();
+
+            int startDepth = property.depth;
+
+            if (property.Next(true) && property.depth > startDepth)
+            {
+                EditorGUILayout.PropertyField(property.Copy());
+                while (property.NextVisible(false) && property.depth > startDepth)
+                {
+                    EditorGUILayout.PropertyField(property.Copy());
+                }
+            }
+        }
+
+
+        private static void DrawPropertiesInRangeIfSpecified(SerializedObject obj, bool useStartProperty, string startProperty, bool useEndProperty, string endProperty)
+        {
+            SerializedProperty property = obj.GetIterator();
+            if (!property.NextVisible(true)) return;
+
+            bool draw = !useStartProperty;
+
+            //script reference
+            bool isScript = !useStartProperty;
+
+            do
+            {
+                if (property.name == startProperty)
+                    draw = true;
+
+                if (draw)
+                {
+                    var disabledScope = new EditorGUI.DisabledGroupScope(isScript);
+                    using (disabledScope)
+                    {
+                        EditorGUILayout.PropertyField(property, true);
+                    }
+                }
+
+                isScript = false;
+
+                if (useEndProperty && property.name == endProperty)
+                    return;
+            }
+            while (property.NextVisible(false));
+        }
+
+        /// <summary>Draws object like it's being viewed in the inspector</summary>
+        /// <param name="obj">Object to draw</param>
+        public static void DrawObjectsInspector(UnityObject obj)
+        {
+            UnityEditor.Editor editor = UnityEditor.Editor.CreateEditor(obj);
+            editor.OnInspectorGUI();
         }
 
         public static Texture2D GenerateColorTexture(Color color)
