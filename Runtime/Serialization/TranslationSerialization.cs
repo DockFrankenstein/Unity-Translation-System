@@ -4,9 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using Translations.Mapping.Values;
 using Translations.Serialization.Serializers;
-using UnityEditor;
 using UnityEngine;
 
 namespace Translations.Serialization
@@ -15,8 +13,12 @@ namespace Translations.Serialization
     public class TranslationSerialization : ScriptableObject
     {
         [Header("Path")]
-        public string path = "Translations";
-        public string editorPath = "Editor Translations";
+        [SerializeField] string path = "Translations";
+        [SerializeField] string editorPath = "Editor Translations";
+
+        [Header("Default")]
+        [Tooltip("Path inside of the translation folder for the default translation")]
+        [SerializeField] string defaultTranslationPath = "en";
 
         [Header("Info")]
         public string infoFileName = "info.json";
@@ -25,9 +27,48 @@ namespace Translations.Serialization
 
         public List<TranslationSerializer> serializers = new List<TranslationSerializer>();
 
+        public string TranslationRootPath =>
+            $"{Application.dataPath}/{(Application.isEditor ? editorPath : path)}";
+
+        public string DefaultTranslationPath =>
+            $"{TranslationRootPath}/{defaultTranslationPath}";
+
         public List<TranslationInfo> LoadedInfo { get; private set; } = new List<TranslationInfo>();
 
         public bool IsLoadingTranslationInfo { get; private set; }
+
+        public TranslationInfo GetInfo(string path)
+        {
+            path = Path.GetFullPath(path);
+            return LoadedInfo.Where(x => x.Path == path)
+                .FirstOrDefault();
+        }
+
+        public TranslationInfo LoadInfo(string path)
+        {
+            var info = LoadInfoFromText(File.ReadAllText(path));
+            info.Path = Path.GetFullPath(Path.GetDirectoryName(path));
+            return info;
+        }
+
+        public async Task<TranslationInfo> LoadInfoAsync(string path)
+        {
+            var info = LoadInfoFromText(await File.ReadAllTextAsync(path));
+            info.Path = Path.GetFullPath(path);
+            return info;
+        }
+
+        public TranslationInfo LoadInfoFromText(string txt)
+        {
+            var json = JObject.Parse(txt);
+
+            var info = new TranslationInfo();
+            info.Name = (string)json[infoNameField] ?? "NO NAME";
+            info.Authors = ((JArray)json[infoAuthorsField])
+                .ToObject<string[]>() ?? Array.Empty<string>();
+
+            return info;
+        }
 
         public void LoadListOfTranslations(string rootPath = null)
         {
@@ -42,7 +83,7 @@ namespace Translations.Serialization
         public async Task LoadListOfTranslationsAsync(string rootPath = null)
         {
             if (rootPath == null)
-                rootPath = $"{Application.dataPath}/{(Application.isEditor ? editorPath : path)}";
+                rootPath = TranslationRootPath;
 
             Debug.Log($"Loading translations from '{rootPath}'...");
 
@@ -65,14 +106,7 @@ namespace Translations.Serialization
                         continue;
                     }
 
-                    var file = await File.ReadAllTextAsync(infoPath);
-                    var json = JObject.Parse(file);
-
-                    var info = new TranslationInfo();
-                    info.Path = directory;
-                    info.Name = (string)json[infoNameField] ?? "NO NAME";
-                    info.Authors = ((JArray)json[infoAuthorsField])
-                        .ToObject<string[]>() ?? Array.Empty<string>();
+                    var info = await LoadInfoAsync(infoPath);
 
                     LoadedInfo.Add(info);
 

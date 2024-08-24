@@ -17,7 +17,23 @@ namespace Translations
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void Initialize()
         {
-            Serializer?.LoadListOfTranslations();
+            LoadTranslation(new RuntimeTranslation(new TranslationInfo(), TranslationSettings.Instance.mapping));
+            
+            if (Serializer != null)
+            {
+                try
+                {
+                    var info = Serializer.LoadInfo($"{Serializer.DefaultTranslationPath}/{Serializer.infoFileName}");
+                    var trans = Serializer.LoadTranslation(info);
+                    LoadTranslation(trans);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"There was an error loading default translation, fallback to mapping asset: {e}");
+                }
+
+                Serializer.LoadListOfTranslations();
+            }
         }
 
         public static void LoadTranslation(RuntimeTranslation translation)
