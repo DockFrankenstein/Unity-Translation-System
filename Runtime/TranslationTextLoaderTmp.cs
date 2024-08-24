@@ -1,4 +1,5 @@
 ﻿using TMPro;
+using Translations.Mapping.Values;
 using UnityEngine;
 
 namespace Translations
@@ -15,10 +16,10 @@ namespace Translations
             translatableText.Load();
         }
 
-        private void TranslatableText_OnLoad(object val)
+        private void TranslatableText_OnLoad(MappingValue val)
         {
             if (target != null)
-                target.text = val.ToString();
+                target.text = (val as MappingValueText)?.value ?? string.Empty;
         }
     }
 }

@@ -1,10 +1,18 @@
 ﻿namespace Translations.Mapping.Values
 {
     [System.Serializable]
-    public class MappingValueText : TranslationMappingValue<string>
+    public class MappingValueText : MappingValue
     {
-        public override string Name => "Text";
+        public MappingValueText() { }
+        public MappingValueText(string value)
+        {
+            this.value = value;
+        }
 
-        public bool test;
+        public override string Name => "Text";
+        public override MappingValue Clone() =>
+            new MappingValueText(value);
+
+        public string value;
     }
 }

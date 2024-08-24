@@ -4,18 +4,32 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using Translations.Mapping;
+using Translations.Mapping.Values;
+using Translations.Serialization.Serializers;
+using UnityEditor;
 using UnityEngine;
 
 namespace Translations.Serialization
 {
-    public class TranslationSerializationManager
+    [CreateAssetMenu(fileName = "new Translation Serialization", menuName = "Translations/Serialization")]
+    public class TranslationSerialization : ScriptableObject
     {
+        [Header("Path")]
+        public string path = "Translations";
+        public string editorPath = "Editor Translations";
+
+        [Header("Info")]
+        public string infoFileName = "info.json";
+        public string infoNameField = "Name";
+        public string infoAuthorsField = "Authors";
+
+        public List<TranslationSerializer> serializers = new List<TranslationSerializer>();
+
         public List<TranslationInfo> LoadedInfo { get; private set; } = new List<TranslationInfo>();
 
         public bool IsLoadingTranslationInfo { get; private set; }
 
-        public void LoadListOfTranslations(string rootPath)
+        public void LoadListOfTranslations(string rootPath = null)
         {
             if (IsLoadingTranslationInfo)
                 return;
@@ -25,9 +39,10 @@ namespace Translations.Serialization
             Task.Run(() => LoadListOfTranslationsAsync(rootPath));
         }
 
-        public async Task LoadListOfTranslationsAsync(string rootPath)
+        public async Task LoadListOfTranslationsAsync(string rootPath = null)
         {
-            var settings = TranslationSettings.Instance;
+            if (rootPath == null)
+                rootPath = $"{Application.dataPath}/{(Application.isEditor ? editorPath : path)}";
 
             Debug.Log($"Loading translations from '{rootPath}'...");
 
@@ -42,7 +57,7 @@ namespace Translations.Serialization
             {
                 try
                 {
-                    var infoPath = $"{directory}/{settings.infoFileName}";
+                    var infoPath = $"{directory}/{infoFileName}";
 
                     if (!File.Exists(infoPath))
                     {
@@ -55,8 +70,8 @@ namespace Translations.Serialization
 
                     var info = new TranslationInfo();
                     info.Path = directory;
-                    info.Name = (string)json[settings.infoNameField] ?? "NO NAME";
-                    info.Authors = ((JArray)json[settings.infoAuthorsField])
+                    info.Name = (string)json[infoNameField] ?? "NO NAME";
+                    info.Authors = ((JArray)json[infoAuthorsField])
                         .ToObject<string[]>() ?? Array.Empty<string>();
 
                     LoadedInfo.Add(info);
@@ -84,41 +99,34 @@ namespace Translations.Serialization
             }
 
             var translation = new RuntimeTranslation(info, settings.mapping);
-            var excludedFiles = new string[] { settings.infoNameField };
+            var excludedFiles = new string[] { infoNameField };
             var files = Directory.GetFiles(info.Path)
                 .Where(x => !excludedFiles.Contains(Path.GetFileNameWithoutExtension(x)))
                 .Where(x => Path.GetExtension(x) != ".meta");
 
-            foreach (var item in files)
+            foreach (var path in files)
             {
-                LoadFile(translation, item);
+                try
+                {
+                    var extension = Path.GetExtension(path).ToLower();
+
+                    if (extension.StartsWith("."))
+                        extension = extension.Substring(1, extension.Length - 1);
+
+                    var serializer = serializers
+                        .Where(x => x.FileExtensions.Contains(extension))
+                        .FirstOrDefault();
+
+                    if (serializer == null) continue;
+                    serializer.Load(translation, File.ReadAllText(path));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"There was an error while loading a translation file at '{path}': {e}");
+                }
             }
 
             return translation;
-        }
-
-        void LoadFile(RuntimeTranslation translation, string filePath)
-        {
-            var extension = Path.GetExtension(filePath).ToLower();
-
-            var file = File.ReadAllText(filePath);
-
-            switch (extension)
-            {
-                case ".json":
-                    var json = JObject.Parse(file);
-
-                    foreach (var item in json)
-                    {
-                        if (!translation.Values.ContainsKey(item.Key)) continue;
-                        var val = (string)item.Value;
-
-                        if (val != null)
-                            translation.Values[item.Key].value = val;
-                    }
-
-                    break;
-            }
         }
     }
 }

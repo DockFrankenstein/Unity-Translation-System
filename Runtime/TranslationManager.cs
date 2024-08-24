@@ -1,4 +1,5 @@
 using System;
+using Translations.Mapping.Values;
 using Translations.Serialization;
 using UnityEngine;
 
@@ -6,7 +7,8 @@ namespace Translations
 {
     public static class TranslationManager
     {
-        public static TranslationSerializationManager Serializer { get; set; } = new TranslationSerializationManager();
+        public static TranslationSerialization Serializer =>
+            TranslationSettings.Instance.serialization;
 
         public static RuntimeTranslation LoadedTranslation { get; private set; }
 
@@ -15,11 +17,7 @@ namespace Translations
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void Initialize()
         {
-            var translationsPath = Application.isEditor ?
-                TranslationSettings.Instance.editorTranslationsPath :
-                TranslationSettings.Instance.translationsPath;
-
-            Serializer.LoadListOfTranslations($"{Application.dataPath}/{translationsPath}");
+            Serializer?.LoadListOfTranslations();
         }
 
         public static void LoadTranslation(RuntimeTranslation translation)
@@ -29,9 +27,9 @@ namespace Translations
             OnLoad?.Invoke();
         }
 
-        public static object GetValue(string tag) =>
+        public static MappingValue GetValue(string tag) =>
             LoadedTranslation?.Values?.TryGetValue(tag, out var val) == true ?
             val.value :
-            tag;
+            null;
     }
 }

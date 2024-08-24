@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Translations.Mapping;
+using Translations.Mapping.Values;
 
 namespace Translations
 {
@@ -37,12 +38,12 @@ namespace Translations
             public Item(MappingItem mappingItem)
             {
                 tag = mappingItem.tag;
-                value = mappingItem.defaultValue.ValueObject;
+                value = mappingItem.defaultValue?.Clone();
                 this.mappingItem = mappingItem;
             }
 
             public string tag;
-            public object value;
+            public MappingValue value;
             public MappingItem mappingItem;
         }
     }

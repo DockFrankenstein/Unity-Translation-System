@@ -12,7 +12,7 @@ namespace Translations.Editor.Mapping.Values
 
         public override void Initialize(MappingValueTextArray value)
         {
-            items = new List<string>(value.value);
+            items = new List<string>(value.array);
             list = new ReorderableList(items, typeof(string));
 
             list.drawHeaderCallback += (rect) =>
@@ -30,7 +30,7 @@ namespace Translations.Editor.Mapping.Values
 
             list.onChangedCallback += _ =>
             {
-                value.value = items.ToArray();
+                value.array = items.ToArray();
             };
         }
 

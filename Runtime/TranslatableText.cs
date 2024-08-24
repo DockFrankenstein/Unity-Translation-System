@@ -1,4 +1,5 @@
 using System;
+using Translations.Mapping.Values;
 using UnityEngine;
 
 namespace Translations
@@ -8,7 +9,7 @@ namespace Translations
     public class TranslatableText
     {
         [SerializeField] string tag;
-        public event Action<object> OnLoad;
+        public event Action<MappingValue> OnLoad;
 
         /// <summary>Tag that will be used for identifying the correct text in a translation.</summary>
         public string Tag
@@ -22,7 +23,7 @@ namespace Translations
         /// <summary>Loads translation text.</summary>
         /// <param name="silent">When true, <see cref="OnLoad"/> will not be invoked.</param>
         /// <returns>Returns the loaded text.</returns>
-        public object Load(bool silent = false)
+        public MappingValue Load(bool silent = false)
         {
             if (!reigsteredToManager)
             {
