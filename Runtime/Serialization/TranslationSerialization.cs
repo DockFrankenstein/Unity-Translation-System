@@ -25,6 +25,8 @@ namespace Translations.Serialization
         public string infoNameField = "Name";
         public string infoAuthorsField = "Authors";
 
+        public event Action OnStartLoadingInfoList;
+
         public List<TranslationSerializer> serializers = new List<TranslationSerializer>();
 
         public string TranslationRootPath =>
@@ -54,7 +56,7 @@ namespace Translations.Serialization
         public async Task<TranslationInfo> LoadInfoAsync(string path)
         {
             var info = LoadInfoFromText(await File.ReadAllTextAsync(path));
-            info.Path = Path.GetFullPath(path);
+            info.Path = Path.GetDirectoryName(path);
             return info;
         }
 
@@ -64,7 +66,7 @@ namespace Translations.Serialization
 
             var info = new TranslationInfo();
             info.Name = (string)json[infoNameField] ?? "NO NAME";
-            info.Authors = ((JArray)json[infoAuthorsField])
+            info.Authors = ((JArray)json[infoAuthorsField])?
                 .ToObject<string[]>() ?? Array.Empty<string>();
 
             return info;
@@ -78,10 +80,13 @@ namespace Translations.Serialization
             IsLoadingTranslationInfo = true;
 
             Task.Run(() => LoadListOfTranslationsAsync(rootPath));
+        
         }
 
         public async Task LoadListOfTranslationsAsync(string rootPath = null)
         {
+            OnStartLoadingInfoList?.Invoke();
+
             if (rootPath == null)
                 rootPath = TranslationRootPath;
 
@@ -118,6 +123,9 @@ namespace Translations.Serialization
                 }
             }
 
+            //TODO: remove this
+            await Task.Delay(3000);
+
             IsLoadingTranslationInfo = false;
             Debug.Log("Finished loading translations!");
         }
@@ -128,7 +136,7 @@ namespace Translations.Serialization
 
             if (!Directory.Exists(info.Path))
             {
-                Debug.LogError("Translation could not be loaded: the specified directory does not exist!");
+                Debug.LogError($"Translation could not be loaded: the specified directory '{info.Path}' does not exist!");
                 return null;
             }
 

@@ -38,5 +38,12 @@ namespace Translations
             
             return value;
         }
+
+        /// <summary>Loads translation text.</summary>
+        /// <typeparam name="T">Type of the value to load.</typeparam>
+        /// <param name="silent">When true, <see cref="OnLoad"/> will not be invoked.</param>
+        /// <returns>Returns the loaded text.</returns>
+        public T Load<T>(bool silent = false) where T : MappingValue =>
+            Load(silent) as T;
     }
 }

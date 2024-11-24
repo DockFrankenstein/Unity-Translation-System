@@ -7,6 +7,6 @@
         public string Path { get; set; }
 
         public override string ToString() =>
-            $"Translation Info '{Name}', made by {string.Join(", ", Authors)}";
+            $"Translation Info '{Name}', made by {string.Join(", ", Authors ?? new string[0])}";
     }
 }

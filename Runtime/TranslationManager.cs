@@ -17,13 +17,18 @@ namespace Translations
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void Initialize()
         {
-            LoadTranslation(new RuntimeTranslation(new TranslationInfo(), TranslationSettings.Instance.mapping));
-            
+            var defaultTransInfo = new TranslationInfo()
+            {
+                Path = Serializer.DefaultTranslationPath,
+            };
+
+            LoadTranslation(new RuntimeTranslation(defaultTransInfo, TranslationSettings.Instance.mapping));
+
             if (Serializer != null)
             {
                 try
                 {
-                    var info = Serializer.LoadInfo($"{Serializer.DefaultTranslationPath}/{Serializer.infoFileName}");
+                    var info = Serializer.LoadInfo($"{defaultTransInfo}/{Serializer.infoFileName}");
                     var trans = Serializer.LoadTranslation(info);
                     LoadTranslation(trans);
                 }
