@@ -1,4 +1,4 @@
-﻿using Translations.Mapping.Values;
+using Translations.Mapping.Values;
 using UnityEditorInternal;
 using System.Collections.Generic;
 using UnityEditor;
@@ -12,7 +12,8 @@ namespace Translations.Editor.Mapping.Values
 
         public override void Initialize(MappingValueTextArray value)
         {
-            items = new List<string>(value.array);
+            UnityEngine.Debug.Log(value);
+            items = new List<string>(value.array ?? System.Array.Empty<string>());
             list = new ReorderableList(items, typeof(string));
 
             list.drawHeaderCallback += (rect) =>

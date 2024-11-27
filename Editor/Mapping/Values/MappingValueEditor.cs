@@ -1,7 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Translations.Mapping;
 using Translations.Mapping.Values;
 using Translations.Utility;
 using UnityEditor;
