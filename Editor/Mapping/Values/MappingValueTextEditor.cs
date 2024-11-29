@@ -1,4 +1,4 @@
-﻿using Translations.Mapping.Values;
+using Translations.Mapping.Values;
 using UnityEditor;
 
 namespace Translations.Editor.Mapping.Values
@@ -8,7 +8,7 @@ namespace Translations.Editor.Mapping.Values
         public override void OnGUI(MappingValueText value)
         {
             EditorGUILayout.LabelField("Value");
-            value.value = EditorGUILayout.TextArea(value.value, ToolGuiUtility.TextAreaOptions);
+            value.content = EditorGUILayout.TextArea(value.content, ToolGuiUtility.TextAreaOptions);
         }
     }
 }

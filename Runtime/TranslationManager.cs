@@ -26,9 +26,11 @@ namespace Translations
 
             if (Serializer != null)
             {
+                Serializer.IsLoadingTranslationInfo = false;
+
                 try
                 {
-                    var info = Serializer.LoadInfo($"{defaultTransInfo}/{Serializer.infoFileName}");
+                    var info = Serializer.LoadInfo($"{defaultTransInfo.Path}/{Serializer.infoFileName}");
                     var trans = Serializer.LoadTranslation(info);
                     LoadTranslation(trans);
                 }

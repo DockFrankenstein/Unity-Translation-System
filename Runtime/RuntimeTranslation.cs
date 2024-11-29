@@ -39,6 +39,7 @@ namespace Translations
             {
                 tag = mappingItem.tag;
                 value = mappingItem.defaultValue?.Clone();
+                value.DynamicValueTags = mappingItem.GetDynamicValueTags();
                 this.mappingItem = mappingItem;
             }
 

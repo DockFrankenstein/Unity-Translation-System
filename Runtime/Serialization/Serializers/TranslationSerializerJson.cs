@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Translations.Mapping.Values;
 
@@ -19,19 +19,25 @@ namespace Translations.Serialization.Serializers
             foreach (var item in json)
             {
                 if (!translation.Values.TryGetValue(item.Key, out var translationItem)) continue;
-                
+
                 switch (translationItem.value)
                 {
                     case MappingValueText valueText:
                         if (item.Value.Type == JTokenType.String)
-                            valueText.value = (string)item.Value;
+                        {
+                            valueText.DynamicValueTags = translationItem.mappingItem.GetDynamicValueTags();
+                            valueText.content = (string)item.Value;
+                        }
                         break;
                     case MappingValueTextArray valueArray:
                         if (item.Value.Type == JTokenType.Array)
-                            valueArray.array = item.Value
+                        {
+                            valueArray.DynamicValueTags = translationItem.mappingItem.GetDynamicValueTags();
+                            valueArray.content = item.Value
                                 .Where(x => x.Type == JTokenType.String)
                                 .Select(x => (string)x)
                                 .ToArray();
+                        }
                         break;
                 }
             }

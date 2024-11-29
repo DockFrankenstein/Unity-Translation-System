@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Translations.Mapping.Values;
 using UnityEngine;
+using System.Linq;
 
 namespace Translations.Mapping
 {
@@ -18,5 +19,9 @@ namespace Translations.Mapping
         [SerializeReference] public MappingValue defaultValue = new MappingValueText();
 
         public List<MappingDynamicValue> dynamicValues = new List<MappingDynamicValue>();
+
+        public string[] GetDynamicValueTags() =>
+            dynamicValues.Select(x => x.tag)
+                .ToArray();
     }
 }

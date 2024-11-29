@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -23,7 +22,7 @@ namespace Translations.UI
 
         private void Reset()
         {
-            
+
         }
 
         GameObject blocker;
@@ -75,8 +74,7 @@ namespace Translations.UI
         private void OnSelectOption(int index)
         {
             CloseDropdown();
-            
-            Debug.Log(index);
+
             var info = items[index].info;
             var trans = TranslationManager.Serializer.LoadTranslation(info);
             TranslationManager.LoadTranslation(trans);

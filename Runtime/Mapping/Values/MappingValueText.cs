@@ -1,18 +1,34 @@
-﻿namespace Translations.Mapping.Values
+using UnityEngine;
+
+namespace Translations.Mapping.Values
 {
     [System.Serializable]
     public class MappingValueText : MappingValue
     {
         public MappingValueText() { }
-        public MappingValueText(string value)
+        public MappingValueText(string content)
         {
-            this.value = value;
+            this.content = content;
         }
 
         public override string Name => "Text";
-        public override MappingValue Clone() =>
-            new MappingValueText(value);
 
-        public string value;
+        public override MappingValue Clone() =>
+            new MappingValueText(content)
+            {
+                DynamicValueTags = DynamicValueTags
+            };
+
+        public string GetValue(params string[] dynamicValues)
+        {
+            var result = content;
+            var dynMin = Mathf.Min(DynamicValueTags.Length, dynamicValues.Length);
+            for (int i = 0; i < dynMin; i++)
+                result = result.Replace($"{DynamicValueTags[i]}", dynamicValues[i]);
+
+            return result;
+        }
+
+        public string content;
     }
 }

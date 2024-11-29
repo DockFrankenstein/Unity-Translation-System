@@ -12,8 +12,7 @@ namespace Translations.Editor.Mapping.Values
 
         public override void Initialize(MappingValueTextArray value)
         {
-            UnityEngine.Debug.Log(value);
-            items = new List<string>(value.array ?? System.Array.Empty<string>());
+            items = new List<string>(value.content ?? System.Array.Empty<string>());
             list = new ReorderableList(items, typeof(string));
 
             list.drawHeaderCallback += (rect) =>
@@ -31,7 +30,7 @@ namespace Translations.Editor.Mapping.Values
 
             list.onChangedCallback += _ =>
             {
-                value.array = items.ToArray();
+                value.content = items.ToArray();
             };
         }
 

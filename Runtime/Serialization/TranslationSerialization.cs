@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -37,7 +37,7 @@ namespace Translations.Serialization
 
         public List<TranslationInfo> LoadedInfo { get; private set; } = new List<TranslationInfo>();
 
-        public bool IsLoadingTranslationInfo { get; private set; }
+        public bool IsLoadingTranslationInfo { get; internal set; } = false;
 
         public TranslationInfo GetInfo(string path)
         {
@@ -78,9 +78,7 @@ namespace Translations.Serialization
                 return;
 
             IsLoadingTranslationInfo = true;
-
             Task.Run(() => LoadListOfTranslationsAsync(rootPath));
-        
         }
 
         public async Task LoadListOfTranslationsAsync(string rootPath = null)
@@ -122,9 +120,6 @@ namespace Translations.Serialization
                     Debug.LogError($"There was an error while loading translation info for \"{Path.GetFileName(directory)}\": {e}");
                 }
             }
-
-            //TODO: remove this
-            await Task.Delay(3000);
 
             IsLoadingTranslationInfo = false;
             Debug.Log("Finished loading translations!");
