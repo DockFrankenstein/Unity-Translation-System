@@ -12,7 +12,7 @@
     "url": "https://github.com/DockFrankenstein"
   },
   "dependencies": [
-    "com.unity.nuget.newtonsoft-json": "1.0.0",
-    "com.unity.textmeshpro": "1.0.0"
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.textmeshpro": "3.0.9"
   ]
 }
