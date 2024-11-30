@@ -1,6 +1,0 @@
-{
-  "name": "DF Translation System",
-  "version": "1.0.0b0",
-  "author": "Dock Frankenstein",
-  "dependencies": ["com.unity.nuget.newtonsoft-json", "com.unity.textmeshpro"]
-}
