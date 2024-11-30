@@ -11,8 +11,8 @@
     "name": "Dock Frankenstein",
     "url": "https://github.com/DockFrankenstein"
   },
-  "dependencies": [
+  "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.textmeshpro": "3.0.9"
-  ]
+  }
 }
