@@ -25,7 +25,7 @@ namespace Translations.Mapping.Values
             var dynMin = Mathf.Min(dynamicValues.Length, DynamicValueTags.Length);
             for (int i = 0; i < result.Length; i++)
                 for (int dynI = 0; dynI < dynMin; dynI++)
-                    result[i] = result[i].Replace($"{DynamicValueTags[dynI]}", dynamicValues[i]);
+                    result[i] = result[i].Replace($"[{DynamicValueTags[dynI]}]", dynamicValues[i]);
 
             return result;
         }
