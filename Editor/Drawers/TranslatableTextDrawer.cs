@@ -9,15 +9,13 @@ namespace Translations.Editor.Drawers
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) =>
             EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-        TranslatableText target;
-
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             var tagProperty = property.FindPropertyRelative("tag");
             bool tagSelected = !string.IsNullOrWhiteSpace(tagProperty.stringValue);
             bool tagExists = TranslationSettings.Instance.mapping.FindItem(tagProperty.stringValue) != null;
 
-            var borderRect = EditorGUI.PrefixLabel(position, new GUIContent("Asd"), EditorStyles.label);
+            var borderRect = EditorGUI.PrefixLabel(position, label, EditorStyles.label);
 
             var colorTagRect = borderRect.ResizeToLeft(8f);
             var colorTagDeviderRect = borderRect.ResizeToRight(0f);

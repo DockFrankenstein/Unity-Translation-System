@@ -3,7 +3,7 @@ using Translations.Mapping.Values;
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace Translations
+namespace Translations.UI
 {
     public class TranslationTextLoaderTmp : MonoBehaviour
     {
@@ -17,6 +17,11 @@ namespace Translations
         {
             translatableText.OnLoad += TranslatableText_OnLoad;
             translatableText.Load();
+        }
+
+        private void Reset()
+        {
+            target = GetComponent<TMP_Text>();
         }
 
         private void TranslatableText_OnLoad(MappingValue val)
