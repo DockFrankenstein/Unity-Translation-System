@@ -13,6 +13,9 @@ namespace Translations.Mapping
         }
 
         public string name;
+        public string fileName;
+        public bool automaticName = true;
+        public string serializerType;
         public List<MappingItem> items = new List<MappingItem>();
     }
 }

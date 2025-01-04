@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Translations.Mapping.Values;
 
@@ -7,12 +9,14 @@ namespace Translations.Serialization.Serializers
     [System.Serializable]
     public class TranslationSerializerJson : TranslationSerializer
     {
+        public override string Id => "json";
+
         public override string[] FileExtensions => new string[]
         {
             "json"
         };
 
-        public override void Load(RuntimeTranslation translation, string txt)
+        public override void Deserialize(RuntimeTranslation translation, string txt)
         {
             var json = JObject.Parse(txt);
 
@@ -41,6 +45,26 @@ namespace Translations.Serialization.Serializers
                         break;
                 }
             }
+        }
+
+        public override string Serialize(IEnumerable<KeyValuePair<string, MappingValue>> values)
+        {
+            var json = new JObject();
+
+            foreach (var item in values)
+            {
+                switch (item.Value)
+                {
+                    case MappingValueText text:
+                        json.Add(item.Key, new JValue(text.content));
+                        break;
+                    case MappingValueTextArray array:
+                        json.Add(item.Key, new JArray(array.content.Select(x => new JValue(x))));
+                        break;
+                }
+            }
+
+            return json.ToString();
         }
     }
 }

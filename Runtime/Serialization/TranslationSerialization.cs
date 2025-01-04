@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Translations.Mapping;
 using Translations.Serialization.Serializers;
 using UnityEngine;
 
@@ -70,6 +71,17 @@ namespace Translations.Serialization
                 .ToObject<string[]>() ?? Array.Empty<string>();
 
             return info;
+        }
+
+        public string WriteInfoToText(TranslationInfo info)
+        {
+            var json = new JObject
+            {
+                { infoNameField, new JValue(info.Name) },
+                { infoAuthorsField, new JArray(info.Authors.Select(x => new JValue(x))) }
+            };
+
+            return json.ToString();
         }
 
         public void LoadListOfTranslations(string rootPath = null)
@@ -155,7 +167,7 @@ namespace Translations.Serialization
                         .FirstOrDefault();
 
                     if (serializer == null) continue;
-                    serializer.Load(translation, File.ReadAllText(path));
+                    serializer.Deserialize(translation, File.ReadAllText(path));
                 }
                 catch (Exception e)
                 {
@@ -164,6 +176,59 @@ namespace Translations.Serialization
             }
 
             return translation;
+        }
+
+        public void GenerateTranslation(string path, Mapping.Mapping mapping)
+        {
+            var serGroups = mapping.groups
+                .GroupBy(x => serializers.Where(y => y.Id == x.serializerType).FirstOrDefault() ?? serializers.FirstOrDefault())
+                .ToDictionary(x => x.Key, x => x.ToArray());
+
+
+            foreach (var ser in serializers)
+            {
+                var defaultExtension = ser.FileExtensions.Length > 0 ?
+                    ser.FileExtensions[0] :
+                    string.Empty;
+
+                var files = serGroups[ser]
+                    .GroupBy(x => GetFinalName(x, defaultExtension));
+                
+                foreach (var item in files)
+                {
+                    var elements = item.SelectMany(x => x.items)
+                        .GroupBy(x => x.tag)
+                        .ToDictionary(x => x.Key, x => x.First().defaultValue)
+                        .Select(x => x);
+
+                    File.WriteAllText($"{path}/{item.Key}", ser.Serialize(elements));
+                }
+            }
+
+
+            string GetFinalName(MappingGroup group, string defaultExtension)
+            {
+                var name = GetName(group, defaultExtension);
+                if (mapping.genLowercase)
+                    return name.ToLower();
+
+                return name;
+            }
+
+            string GetName(MappingGroup group, string defaultExtension)
+            {
+                if (!group.automaticName)
+                    return group.fileName;
+
+                switch (mapping.genBehaviour)
+                {
+                    case Mapping.Mapping.DefaultGenerationBehaviour.SingleFile:
+                        return $"{mapping.genSingleFileName}.{defaultExtension}";
+                    
+                    default:
+                        return $"{group.name}.{defaultExtension}";
+                }
+            }
         }
     }
 }

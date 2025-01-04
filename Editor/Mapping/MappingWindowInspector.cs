@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Translations.Editor.Mapping.Inspectors;
-using Translations.Mapping;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,6 +18,7 @@ namespace Translations.Editor.Mapping
                 new MappingGroupInspector(this),
                 new MappingItemInspector(this),
                 new MappingDynamicValueInspector(this),
+                new GenInspector(this),
             };
         }
 
@@ -30,7 +28,7 @@ namespace Translations.Editor.Mapping
         public IEnumerable<object> SelectedObjects 
         { 
             get => _selectedObjects; 
-            private set
+            set
             {
                 _currentInspector?.Uninitialize();
                 _selectedObjects = value;
@@ -85,7 +83,7 @@ namespace Translations.Editor.Mapping
                     if (_currentInspector != null)
                     {
                         var labelWidth = EditorGUIUtility.labelWidth;
-                        EditorGUIUtility.labelWidth = 80f;
+                        EditorGUIUtility.labelWidth = 120f;
 
                         EditorGUI.BeginChangeCheck();
                         _currentInspector.OnGUI();

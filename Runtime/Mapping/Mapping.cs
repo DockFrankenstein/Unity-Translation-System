@@ -17,5 +17,15 @@ namespace Translations.Mapping
             groups.SelectMany(x => x.items)
             .Where(x => x.tag == tag)
             .FirstOrDefault();
+
+        public bool genLowercase = true;
+        public DefaultGenerationBehaviour genBehaviour = DefaultGenerationBehaviour.ByGroup;
+        public string genSingleFileName = "main";
+
+        public enum DefaultGenerationBehaviour
+        {
+            SingleFile,
+            ByGroup,
+        }
     }
 }

@@ -6,7 +6,6 @@ using UnityEditor;
 using Translations.Utility;
 using Translations.Mapping.Values;
 using UnityEngine;
-using UnityEditor.UIElements;
 using Translations.Editor.Mapping.Values;
 
 namespace Translations.Editor.Mapping.Inspectors
