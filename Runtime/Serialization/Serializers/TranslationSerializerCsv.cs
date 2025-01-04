@@ -20,7 +20,10 @@ namespace Translations.Serialization.Serializers
             {
                 var key = table.GetCell(0, r);
 
-                switch (translation.Values[key].value)
+                if (!translation.Values.TryGetValue(key, out var val))
+                    continue;
+
+                switch (val.value)
                 {
                     case MappingValueText text:
                         text.content = table.GetCell(1, r);
@@ -31,11 +34,11 @@ namespace Translations.Serialization.Serializers
                         
                         do
                         {
-                            var val = table.GetCell(1, r);
-                            if (!val.StartsWith("- ")) continue;
-                            val = val.Substring(2, val.Length - 2);
+                            var c = table.GetCell(1, r);
+                            if (!c.StartsWith("- ")) continue;
+                            c = c.Substring(2, c.Length - 2);
                             
-                            list.Add(val);
+                            list.Add(c);
                             r++;
                         } while (string.IsNullOrWhiteSpace(table.GetCell(0, r)));
                         
