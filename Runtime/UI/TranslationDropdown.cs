@@ -3,6 +3,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Translations.Mapping.Values;
 
 namespace Translations.UI
 {
@@ -20,18 +21,23 @@ namespace Translations.UI
 
         List<Item> items = new List<Item>();
 
-        private void Reset()
-        {
-
-        }
-
         GameObject blocker;
         bool isLoading = false;
+
+        string loadingTextVal;
 
         private void Start()
         {
             if (itemTemplate?.gameObject?.scene != null)
                 itemTemplate.gameObject.SetActive(false);
+
+            loadingText.OnLoad += val =>
+            {
+                loadingTextVal = (val as MappingValueText)?.GetValue() ?? "Loading...";
+                RefreshContent();
+            };
+
+            loadingText.Load();
 
             isLoading = TranslationManager.Serializer.IsLoadingTranslationInfo;
             RefreshContent();
@@ -122,6 +128,13 @@ namespace Translations.UI
 
         void RefreshContent()
         {
+            if (buttonLabel != null)
+            {
+                buttonLabel.text = isLoading ?   
+                    loadingTextVal : 
+                    TranslationManager.LoadedTranslation.Info.Name;
+            }
+
             var loadedInfo = TranslationManager.Serializer.LoadedInfo;
             var parent = itemTemplate.transform.parent as RectTransform;
             var elHeight = (itemTemplate.transform as RectTransform).sizeDelta.y;

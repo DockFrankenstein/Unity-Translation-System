@@ -228,7 +228,7 @@ namespace Translations.Editor
 
             btnTxtTxt.text = "Translation";
             btnTxtTxt.color = dark;
-            btnTxtTxt.fontSize = 20f;
+            btnTxtTxt.fontSize = 18f;
             btnTxtTxt.alignment = TextAlignmentOptions.MidlineLeft;
 
             btnArrowImg.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite> ("UI/Skin/DropdownArrow.psd");
