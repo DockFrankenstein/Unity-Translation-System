@@ -262,16 +262,49 @@ namespace Translations.Editor
         }
 
         [MenuItem("GameObject/Translation System/Translatable Text - TextMeshPro", false, 20)]
-        public static void CreateTranslatableTMProUI()
+        public static void CreateTranslatableTMPro()
         {
             var root = new GameObject("Translatable Text (TMP)");
             var text = root.AddComponent<TextMeshPro>();
-            var transl = root.AddComponent<TranslationTextLoaderTmp>();
+            root.AddComponent<TranslationTextLoaderTmp>();
 
             root.transform.SetParent(Selection.activeGameObject?.transform ?? null);
 
             text.text = "Translatable Text";
-            transl.target = text;
+
+            FinishObj(root);
+        }
+
+        [MenuItem("GameObject/Translation System/Translatable Text (UI) - TextMeshPro", false, 21)]
+        public static void CreateTranslatableTMProUI()
+        {
+            var canv = GetContextCanvas();
+
+            var root = new GameObject("Translatable Text UI (TMP)");
+            var trans = root.AddComponent<RectTransform>();
+            var text = root.AddComponent<TextMeshProUGUI>();
+            root.AddComponent<TranslationTextLoaderTmp>();
+
+            root.transform.SetParent(canv.transform);
+            trans.anchoredPosition = Vector2.zero;
+            text.text = "Translatable Text";
+
+            FinishObj(root);
+        }
+
+        [MenuItem("GameObject/Translation System/Translatable Text (UI)", false, 22)]
+        public static void CreateTranslatable()
+        {
+            var canv = GetContextCanvas();
+
+            var root = new GameObject("Translatable Text UI");
+            var trans = root.AddComponent<RectTransform>();
+            var text = root.AddComponent<Text>();
+            root.AddComponent<TranslationTextLoader>();
+
+            root.transform.SetParent(canv.transform);
+            trans.anchoredPosition = Vector2.zero;
+            text.text = "Translatable Text";
 
             FinishObj(root);
         }
