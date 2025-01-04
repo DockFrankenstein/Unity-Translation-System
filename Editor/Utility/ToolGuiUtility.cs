@@ -5,8 +5,6 @@ using UnityEditor;
 using UnityEngine;
 
 using UnityObject = UnityEngine.Object;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 namespace Translations.Editor
 {

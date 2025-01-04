@@ -3,9 +3,7 @@ using UnityEditor;
 using Translations.UI;
 using UnityEngine.UI;
 using TMPro;
-using System.Threading.Tasks;
 using UnityEngine.EventSystems;
-using UnityEditor.SceneManagement;
 
 namespace Translations.Editor
 {

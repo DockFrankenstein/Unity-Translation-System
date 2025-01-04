@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using Translations.Mapping;
 
 namespace Translations.Editor.Mapping
 {

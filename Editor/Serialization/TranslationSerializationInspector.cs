@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using Translations.Serialization;
 using Translations.Serialization.Serializers;
 using Translations.Utility;
 using UnityEditor;
-using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace Translations.Editor.Serialization
