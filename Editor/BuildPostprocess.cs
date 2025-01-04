@@ -39,7 +39,6 @@ namespace Translations.Editor
             // Get the files in the source directory and copy to the destination directory
             foreach (FileInfo file in dir.GetFiles())
             {
-                UnityEngine.Debug.Log(file.Extension);
                 if (file.Extension == ".meta")
                     continue;
 
