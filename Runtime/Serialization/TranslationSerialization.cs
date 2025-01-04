@@ -14,8 +14,8 @@ namespace Translations.Serialization
     public class TranslationSerialization : ScriptableObject
     {
         [Header("Path")]
-        [SerializeField] string path = "Translations";
-        [SerializeField] string editorPath = "Editor Translations";
+        [SerializeField] public string path = "Translations";
+        [SerializeField] public string editorPath = "Editor Translations";
 
         [Header("Default")]
         [Tooltip("Path inside of the translation folder for the default translation")]
@@ -31,7 +31,9 @@ namespace Translations.Serialization
         public List<TranslationSerializer> serializers = new List<TranslationSerializer>();
 
         public string TranslationRootPath =>
-            $"{Application.dataPath}/{(Application.isEditor ? editorPath : path)}";
+            Application.isEditor ?
+            $"{Application.dataPath}/{editorPath}" :
+            $"{Path.GetDirectoryName(Application.dataPath)}/{path}";
 
         public string DefaultTranslationPath =>
             $"{TranslationRootPath}/{defaultTranslationPath}";
