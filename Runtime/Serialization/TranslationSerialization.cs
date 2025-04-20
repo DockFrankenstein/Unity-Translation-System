@@ -189,6 +189,9 @@ namespace Translations.Serialization
 
             foreach (var ser in serializers)
             {
+                if (!serGroups.ContainsKey(ser))
+                    continue;
+
                 var defaultExtension = ser.FileExtensions.Length > 0 ?
                     ser.FileExtensions[0] :
                     string.Empty;
